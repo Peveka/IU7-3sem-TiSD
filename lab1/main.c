@@ -98,7 +98,7 @@ int validate_number(char *s)
 
     if (exp_count == 1 && exp_index) //смотрим дальше после буквы E
     {
-        ptr = (char *)exp_index+1; //пропускаем букву Е
+        ptr = s + exp_index + 1; //пропускаем букву Е
         int after_exp_count = 0;
         while (*ptr)
         {
@@ -167,8 +167,6 @@ void norm_double(char *str, char *out)
                 number[idx++] = *ptr++;
                 first_num_flag = 0;
             }
-
-
         }
     }
     number[idx] = '\0';
@@ -203,9 +201,10 @@ void norm_int(char* str, char* out)
     // Пусто - значит нуль
     if (len == 0) {
         strcpy(out, "+0.0E+0");
+        return;
     }
 
-    snprintf(out, sizeof(out), "%c0.%sE+%d", sign, ptr, len);
+    snprintf(out, MAX_LEN, "%c0.%sE+%d", sign, ptr, len);
 }
 
 void norm_exp(const char *str, char *out)
@@ -346,7 +345,7 @@ int multiply_long(extended_float *a, extended_float *b, extended_float *res)
 
 void move_num_to_struct(extended_float *num_struct, char *number)
 {
-    char *p = number + 1;          // пропускаем знак, его записали при обработке
+    char *p = number;
     while (*p && *p != 'E' && *p != 'e')
         ++p; //доходим до экспоненты
 
@@ -367,7 +366,7 @@ int parse_num(extended_float *num)
         return -1; //ошибка ввода
 
     if (!validate_number(scanned_str)) //проверка числа
-        return 0;
+        return 1;
 
     num->mantissa_sign = get_sign(scanned_str[0]);
 
@@ -386,13 +385,13 @@ int main() {
     extended_float num1, num2, result;
 
     printf("Введите первое число (максимум 40 цифр в мантиссе):\n");
-    if (!parse_num(&num1)) {
+    if (parse_num(&num1) != 0) {
         printf("Ошибка ввода первого числа.\n");
         return 1;
     }
 
     printf("Введите второе число (максимум 30 цифр в мантиссе):\n");
-    if (!parse_num(&num2)) {
+    if (parse_num(&num2) != 0) {
         printf("Ошибка ввода второго числа.\n");
         return 1;
     }
