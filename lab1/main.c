@@ -177,7 +177,7 @@ void norm_double(char *str, char *out)
         return;
     }
 
-    snprintf(out, MAX_LEN, "%c0.%sE%c%d", sign, number, exp_sign, exp_sign == '+' ? int_len : float_len);
+    snprintf(out, MAX_LEN+20, "%c0.%sE%c%d", sign, number, exp_sign, exp_sign == '+' ? int_len : float_len);
 }
 
 void norm_int(char* str, char* out)
@@ -204,7 +204,7 @@ void norm_int(char* str, char* out)
         return;
     }
 
-    snprintf(out, MAX_LEN, "%c0.%sE+%d", sign, ptr, len);
+    snprintf(out, MAX_LEN+20, "%c0.%sE+%d", sign, ptr, len);
 }
 
 void norm_exp(const char *str, char *out)
@@ -242,7 +242,7 @@ void norm_exp(const char *str, char *out)
     // обрезаем строку сразу после цифр мантиссы
     *p = '\0';
 
-    snprintf(out, MAX_LEN, "%sE%+d", mant_norm, new_exp);
+    snprintf(out, MAX_LEN+20, "%sE%+d", mant_norm, new_exp);
 }
 
 int mult_arr(int *a, int len_a, int *b, int len_b, int *res)
@@ -359,8 +359,8 @@ void move_num_to_struct(extended_float *num_struct, char *number)
 
 int parse_num(extended_float *num)
 {
-    char scanned_str[MAX_LEN];
-    char str_for_num[MAX_LEN];
+    char scanned_str[MAX_LEN+20];
+    char str_for_num[MAX_LEN+20];
 
     if (scanf("%s", scanned_str) != 1)
         return -1; //ошибка ввода
