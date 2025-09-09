@@ -40,7 +40,7 @@ void print_lineal(int max_digits) {
 }
 
 void print_num_struct(extended_float* num) {
-    printf("%c0.%sE%+d", num->mantissa_sign, num->mantissa, num->exponent);
+    printf("%c0.%sE%+d", num->mantissa_sign, num->mantissa, num->exponent-1);
 }
 
 int string_to_arr_num(char *s, int *d)
@@ -77,8 +77,12 @@ int validate_number(char *s)
     int len_int = 0;
     int unknown_detected = 0;
     char* ptr = (s[0] == '+' || s[0] == '-' ? s+1 : s);
+
     while (*ptr && *ptr == '0')
         ptr++; //пропуск ведущих нулей
+
+    if (*ptr == '\0') //значит число состоит только из нулей => равно нулю
+        return 1;
 
     int int_seen = 0;          //была ли ненулевая целая часть
     while (*ptr) {
@@ -301,7 +305,7 @@ void round_struct(int *d, int *len)
             rem = t / 10;
         }
         if (rem) { // появился 31-й разряд
-            d[MAX_MAN_AFTER_MULTY] = 1;
+            d[0] = 1;
             *len = MAX_MAN_AFTER_MULTY;
             return;
         }
@@ -311,34 +315,19 @@ void round_struct(int *d, int *len)
 
 void mul_mant_strings(char *a, char *b, char *out)
 {
-    printf("Умножаем мантиссы: '%s' * '%s'\n", a, b); // Добавить эту строку
-
     int num1[MAX_MAN_AFTER_MULTY*2], num2[MAX_MAN_AFTER_MULTY*2], res_num[MAX_MAN_AFTER_MULTY*2] = {0};
 
     int len_num1 = string_to_arr_num(a, num1);
     int len_num2 = string_to_arr_num(b, num2);
 
-    printf("Длины массивов: %d * %d\n", len_num1, len_num2); // Добавить эту строку
-
     int res_num_len = mult_arr(num1, len_num1, num2, len_num2, res_num);
-
-    printf("Длина результата до округления: %d\n", res_num_len); // Добавить эту строку
-
     round_struct(res_num, &res_num_len);
-
-    // Проверяем длину мантиссы после округления
-    if (res_num_len > MAX_MAN_AFTER_MULTY) {
-        printf("Ошибка: мантисса превышает 30 символов после округления\n");
-        return;
-    }
 
     // перевод результата обратно в строчку (с конца)
     int i = res_num_len - 1, idx = 0;
     while (i >= 0)
         out[idx++] = '0' + res_num[i--];
     out[idx] = '\0';
-
-    printf("Результат умножения мантисс: '%s'\n", out); // Добавить эту строку
 }
 
 int multiply_long(extended_float *a, extended_float *b, extended_float *res)
@@ -351,8 +340,9 @@ int multiply_long(extended_float *a, extended_float *b, extended_float *res)
     int mant_len = strlen(mantissa_res);
     if (mant_len > MAX_MAN_AFTER_MULTY) {
         // Порядок увеличивается на 1
-        res->exponent = a->exponent + b->exponent + 1;
-        mantissa_res[MAX_MAN_AFTER_MULTY] = '\0';
+        res->exponent = a->exponent + b->exponent+1;
+        if (mant_len > MAX_MAN_AFTER_MULTY)
+            mantissa_res[MAX_MAN_AFTER_MULTY] = '\0';
     } else {
         res->exponent = a->exponent + b->exponent;
     }
@@ -421,8 +411,9 @@ int parse_num(extended_float *num)
 }
 
 int main() {
-    extended_float num1, num2, result;
-
+    extended_float num1 = {.mantissa_sign = '+', .mantissa="0", .exponent_sign = '+', .exponent = 0};
+    extended_float num2 = {.mantissa_sign = '+', .mantissa="0", .exponent_sign = '+', .exponent = 0};
+    extended_float result = {.mantissa_sign = '+', .mantissa="0", .exponent_sign = '+', .exponent = 0};
     printf("Input float num (max 40 digit in mant, E should be UPPER):\n");
     print_lineal(40);
     if (parse_num(&num1) != 0) {
@@ -432,8 +423,17 @@ int main() {
 
     printf("Input int num (max 30 digits):\n");
     print_lineal(40);
-    if (parse_num(&num2) != 0 || num2.exponent != strlen(num2.mantissa) || strlen(num2.mantissa) > 30) {
+    if (parse_num(&num2) != 0)
         printf("Input error (int num).\n");
+
+    if (!strncmp(num2.mantissa, "0", 1) || !strncmp(num1.mantissa, "0", 1))
+    {
+        printf("0");
+        return 0;
+    }
+
+    if (num2.exponent != strlen(num2.mantissa) || strlen(num2.mantissa) > 30) {
+        printf("Input number (int num).\n");
         return 1;
     }
 
