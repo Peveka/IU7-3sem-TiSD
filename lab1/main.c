@@ -23,17 +23,43 @@ char get_sign(char letter)
     return sign;
 }
 
+void print_lineal(int max_digits) {
+    for (int i = 1; i <= max_digits; i++) {
+        if (i % 10 == 0) {
+            printf("%d", i / 10);
+        } else {
+            printf(" ");
+        }
+    }
+    printf("\n");
+
+    for (int i = 1; i <= max_digits; i++) {
+        printf("%d", i % 10);
+    }
+    printf("\n");
+}
+
 void print_num_struct(extended_float* num) {
-    printf("%c%sE%c%d", num->mantissa_sign, num->mantissa, num->exponent_sign, num->exponent);
+    printf("%c0.%sE%+d", num->mantissa_sign, num->mantissa, num->exponent);
 }
 
 int string_to_arr_num(char *s, int *d)
 {
     int len = 0;
-    while (*s)
+    char* ptr = s;
+    while (*ptr && *ptr != 'E' && *ptr != 'e' && len < MAX_MAN_AFTER_MULTY*2)
     {
-        d[len++] = *s++ - '0';
+        d[len++] = *ptr++ - '0'; // записываем цифры в прямом порядке
     }
+
+    // Переворачиваем массив, чтобы d[0] был единицами
+    for (int i = 0; i < len / 2; ++i)
+    {
+        int temp = d[i];
+        d[i] = d[len - 1 - i];
+        d[len - 1 - i] = temp;
+    }
+
     return len;
 }
 
@@ -45,9 +71,9 @@ int validate_number(char *s)
     int dot_count = 0;
     int dot_index = 0;
     int exp_count = 0;
-    int exp_index = 0;
+    int exp_index = 99999;
     int len_num = 0;
-    int len_double = 0;
+
     int len_int = 0;
     int unknown_detected = 0;
     char* ptr = (s[0] == '+' || s[0] == '-' ? s+1 : s);
@@ -93,7 +119,8 @@ int validate_number(char *s)
         }   //не считаем нули значащими, если не было целой части
     }
 
-    if (len_num == 0 || dot_count > 1 || exp_count > 1 || unknown_detected || dot_index > exp_index || len_num > 40)
+    if (len_num == 0 || dot_count > 1 || exp_count > 1 || unknown_detected || dot_index > exp_index ||
+        len_num > 40)
         return 0;
 
     if (exp_count == 1 && exp_index) //смотрим дальше после буквы E
@@ -115,13 +142,7 @@ int validate_number(char *s)
 
         if (after_exp_count > 5 || unknown_detected)
             return 0;
-
-        len_double = after_exp_count;
     }
-
-    // Проверяем длину целого числа (до 30 цифр)
-    if (len_num > 30 && len_double == 0)
-        return 0;
 
     return 1;
 }
@@ -290,12 +311,18 @@ void round_struct(int *d, int *len)
 
 void mul_mant_strings(char *a, char *b, char *out)
 {
+    printf("Умножаем мантиссы: '%s' * '%s'\n", a, b); // Добавить эту строку
+
     int num1[MAX_MAN_AFTER_MULTY*2], num2[MAX_MAN_AFTER_MULTY*2], res_num[MAX_MAN_AFTER_MULTY*2] = {0};
 
     int len_num1 = string_to_arr_num(a, num1);
     int len_num2 = string_to_arr_num(b, num2);
 
+    printf("Длины массивов: %d * %d\n", len_num1, len_num2); // Добавить эту строку
+
     int res_num_len = mult_arr(num1, len_num1, num2, len_num2, res_num);
+
+    printf("Длина результата до округления: %d\n", res_num_len); // Добавить эту строку
 
     round_struct(res_num, &res_num_len);
 
@@ -310,6 +337,8 @@ void mul_mant_strings(char *a, char *b, char *out)
     while (i >= 0)
         out[idx++] = '0' + res_num[i--];
     out[idx] = '\0';
+
+    printf("Результат умножения мантисс: '%s'\n", out); // Добавить эту строку
 }
 
 int multiply_long(extended_float *a, extended_float *b, extended_float *res)
@@ -345,12 +374,22 @@ int multiply_long(extended_float *a, extended_float *b, extended_float *res)
 
 void move_num_to_struct(extended_float *num_struct, char *number)
 {
-    char *p = number;
+    // Определяем знак числа
+    if (*number == '+' || *number == '-') {
+        num_struct->mantissa_sign = *number;
+        ++number;
+    } else {
+        num_struct->mantissa_sign = '+';
+    }
+
+    number += 2; // пропуск нуля и точки
+
+    char *p = number; // начало мантиссы (только цифры)
     while (*p && *p != 'E' && *p != 'e')
-        ++p; //доходим до экспоненты
+        ++p; // доходим до экспоненты
 
     size_t mlen = (size_t)(p - number);
-    memcpy(num_struct->mantissa, number, mlen); //записываем мантиссу
+    memcpy(num_struct->mantissa, number, mlen); // записываем только цифры мантиссы
     num_struct->mantissa[mlen] = '\0';
 
     num_struct->exponent_sign = *(p + 1); // сдвигаем знак после E
@@ -384,21 +423,23 @@ int parse_num(extended_float *num)
 int main() {
     extended_float num1, num2, result;
 
-    printf("Введите первое число (максимум 40 цифр в мантиссе):\n");
+    printf("Input float num (max 40 digit in mant, E should be UPPER):\n");
+    print_lineal(40);
     if (parse_num(&num1) != 0) {
-        printf("Ошибка ввода первого числа.\n");
+        printf("Input error (float num).\n");
         return 1;
     }
 
-    printf("Введите второе число (максимум 30 цифр в мантиссе):\n");
-    if (parse_num(&num2) != 0) {
-        printf("Ошибка ввода второго числа.\n");
+    printf("Input int num (max 30 digits):\n");
+    print_lineal(40);
+    if (parse_num(&num2) != 0 || num2.exponent != strlen(num2.mantissa) || strlen(num2.mantissa) > 30) {
+        printf("Input error (int num).\n");
         return 1;
     }
 
     multiply_long(&num1, &num2, &result);
 
-    printf("Результат:\n");
+    printf("Result:\n");
     print_num_struct(&result);
 
     return 0;
