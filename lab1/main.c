@@ -24,7 +24,7 @@ char get_sign(char letter)
     return sign;
 }
 
-void print_lineal(int max_digits) 
+void print_lineal(int max_digits) // вывод линейки
 {
     for (int i = 1; i <= max_digits; i++) 
     {
@@ -47,9 +47,9 @@ void print_lineal(int max_digits)
 
 void print_num_struct(extended_float* num) {
     printf("%c0.%sE%+d", num->mantissa_sign, num->mantissa, num->exponent);
-}
+} //вывод структуры с числом в виде строки в норм виде
 
-int string_to_arr_num(char *s, int *d)
+int string_to_arr_num(char *s, int *d) //перевод строки в массив чисел
 {
     int len = 0;
     char* ptr = s;
@@ -71,117 +71,113 @@ int string_to_arr_num(char *s, int *d)
 
 int validate_number(char *s)
 {
-    if (!s || !*s) 
+    if (!s || !*s)
         return 0;
 
-    int has_digits = 0;
-    int has_dot = 0;
-    int has_exp = 0;
-    int len = 0;
+    int dot_count = 0;
+    int exp_count = 0;
+    int exp_index = -1;
+    int dot_index = -1;
 
-    char *ptr = s;
-
-    // Пропуск знака, если он есть
+    char* ptr = s;
     if (*ptr == '+' || *ptr == '-') 
     {
         ptr++;
     }
 
     // Проверка на пустую строку после знака
-    if (!*ptr) 
+    if (!*ptr) {
         return 0;
-    
-    char* temp_ptr = ptr;
-    while (*temp_ptr) 
+    }
+
+    while (*ptr && *ptr != 'E' && *ptr != 'e') 
     {
-        if (isdigit(*temp_ptr)) 
+        if (isdigit(*ptr)) 
         {
-            has_digits = 1;
-        } else if (*temp_ptr == '.') 
+            // Просто пропускаем, потом посчитаем значащие
+        } else if (*ptr == '.') 
         {
-            if (has_dot || has_exp) 
-                return 0;
-            has_dot = 1;
-        } else if (*temp_ptr == 'E' || *temp_ptr == 'e') 
+            dot_count++;
+            dot_index = ptr - s;
+        } else 
         {
-            if (has_exp || !has_digits) 
-                return 0;
-            has_exp = 1;
-            temp_ptr++;
-            // Проверка знака экспоненты
-            if (*temp_ptr == '+' || *temp_ptr == '-') 
-            {
-                temp_ptr++;
-            }
-            // Проверка на наличие цифр после E
-            if (!*temp_ptr || !isdigit(*temp_ptr)) 
-                return 0;
-            while (isdigit(*temp_ptr)) 
-                temp_ptr++;
-            continue;
-        } 
-        else 
-        {
-            return 0; // Недопустимый символ
+            return 0; // Недопустимый символ в мантиссе
         }
-        temp_ptr++;
-    }
-
-    // Дополнительные проверки
-    if (!has_digits) 
-    {
-        return 0;
-    }
-
-    // Подсчет значащих цифр для проверки длины мантиссы
-    ptr = s;
-    if (*ptr == '+' || *ptr == '-') 
         ptr++;
+    }
     
-    char* dot_pos = strchr(ptr, '.');
-    char* exp_pos = strchr(ptr, 'E');
-    if (exp_pos == NULL) 
-        exp_pos = strchr(ptr, 'e');
-
-    // Если есть экспонента, работаем с частью до неё
-    char temp_mant[MAX_LEN];
-    if (exp_pos) 
+    // Проверка на E
+    if (*ptr) 
     {
-        strncpy(temp_mant, ptr, exp_pos - ptr);
-        temp_mant[exp_pos - ptr] = '\0';
-        ptr = temp_mant;
-    }
-
-    // Пропуск ведущих нулей (включая нескольно, напирмер .000)
-    if (*ptr == '0' && dot_pos) 
-    {
-        ptr++;
-        if (*ptr == '.') ptr++;
-        while (*ptr == '0' && *ptr != '\0') 
+        exp_count++;
+        exp_index = ptr - s;
+        ptr++; // Пропускаем 'E'
+        if (*ptr == '+' || *ptr == '-') 
+        {
             ptr++;
-    } 
-    else 
-    {
-        while (*ptr == '0') ptr++;
-    }
-    
-    // Подсчет значащих цифр
-    while (*ptr && *ptr != '.') 
-    {
-        len++;
-        ptr++;
-    }
-    if (dot_pos) 
-    {
-        ptr = dot_pos + 1;
+        }
+        // Проверка экспоненты
+        int exp_len = 0;
+        if (!*ptr) return 0; // Знак экспоненты без цифр
         while (*ptr) 
         {
-            len++;
+            if (!isdigit(*ptr)) 
+            {
+                return 0; // Недопустимый символ в экспоненте
+            }
+            exp_len++;
             ptr++;
         }
+        if (exp_len >= 6) 
+        {
+            return 0; // Экспонента слишком длинная
+        }
+    }
+    
+    // Подсчет значащих цифр в мантиссе
+    int mantissa_len = 0;
+    char *mantissa_start = s;
+    if (*mantissa_start == '+' || *mantissa_start == '-') {
+        mantissa_start++;
+    }
+    
+    // Если есть точка, смотрим, где начинаются значащие цифры
+    if (dot_count == 1) 
+    {
+        char *p_after_dot = strchr(mantissa_start, '.') + 1;
+        
+        // Пропускаем ведущие нули после точки
+        char *temp_ptr = p_after_dot;
+        while(*temp_ptr == '0' && isdigit(*(temp_ptr + 1))) 
+        {
+            temp_ptr++;
+        }
+        
+        // Считаем все остальные цифры до 'E'
+        while(*temp_ptr && *temp_ptr != 'E' && *temp_ptr != 'e' && isdigit(*temp_ptr)) 
+        {
+            mantissa_len++;
+            temp_ptr++;
+        }
+        
+    } else 
+    { // Если нет точки, считаем все цифры
+        while (*mantissa_start && *mantissa_start != 'E' && *mantissa_start != 'e')
+        {
+            if(isdigit(*mantissa_start)){
+                 mantissa_len++;
+            }
+            mantissa_start++;
+        }
+    }
+    
+    // Если число равно 0
+    if (mantissa_len == 0 && (strcmp(s, "0") == 0 || strcmp(s, "+0") == 0 || strcmp(s, "-0") == 0 || strcmp(s, "0.0") == 0)) 
+    {
+        return 1;
     }
 
-    if (len > MAX_MANTISSA_LEN) 
+    if (dot_count > 1 || exp_count > 1 || mantissa_len > 40 || (dot_index > exp_index && exp_index != -1)) 
     {
         return 0;
     }
@@ -189,7 +185,7 @@ int validate_number(char *s)
     return 1;
 }
 
-void norm_res(extended_float* num) 
+void norm_res(extended_float* num) //нормализация результата (при необходимости)
 {
     char* ptr = num->mantissa;
     int indx = 0;
@@ -207,7 +203,7 @@ void norm_res(extended_float* num)
     }
 }
 
-void norm_double(char *str, char *out)
+void norm_double(char *str, char *out) //нормализация дробного числа
 {
     char *ptr = str;
     char sign = get_sign(str[0]);
@@ -274,7 +270,7 @@ void norm_double(char *str, char *out)
     snprintf(out, MAX_LEN+20, "%c0.%sE%+d", sign, num_ptr, exponent);
 }
 
-void norm_int(char* str, char* out)
+void norm_int(char* str, char* out) //норм целого числа
 {
     char* ptr = str;
     char sign = get_sign(str[0]);
@@ -303,7 +299,7 @@ void norm_int(char* str, char* out)
     snprintf(out, MAX_LEN+20, "%c0.%sE+%d", sign, ptr, len);
 }
 
-void norm_exp(const char *str, char *out)
+void norm_exp(const char *str, char *out) //нормализация числа в экспоненциальном виде 
 {
     const char *e = str;
     while (*e && *e != 'E' && *e != 'e')
@@ -334,7 +330,7 @@ void norm_exp(const char *str, char *out)
     snprintf(out, MAX_LEN+20, "%sE%+d", mant_norm, new_exp);
 }
 
-void move_num_to_struct(extended_float *num_struct, char *number)
+void move_num_to_struct(extended_float *num_struct, char *number) //запись строки в структуру
 {
     if (*number == '+' || *number == '-') {
         num_struct->mantissa_sign = *number;
@@ -366,7 +362,7 @@ void move_num_to_struct(extended_float *num_struct, char *number)
     }
 }
 
-int parse_num(extended_float *num)
+int parse_num(extended_float *num) //обработчик ввода числа
 {
     char scanned_str[MAX_LEN + 20];
     char str_for_num[MAX_LEN + 20];
@@ -377,16 +373,16 @@ int parse_num(extended_float *num)
     scanned_str[strcspn(scanned_str, "\n")] = 0;
 
     if (!validate_number(scanned_str))
-        return 1;
+         return 1;
 
     num->mantissa_sign = get_sign(scanned_str[0]);
 
     if (strchr(scanned_str, 'E') || strchr(scanned_str, 'e'))
-        norm_exp(scanned_str, str_for_num);
+        norm_exp(scanned_str, str_for_num); //если есть E - число в эксп. форме
     else if (strchr(scanned_str, '.'))
-        norm_double(scanned_str, str_for_num);
+        norm_double(scanned_str, str_for_num); // если есть . - дробная
     else
-        norm_int(scanned_str, str_for_num);
+        norm_int(scanned_str, str_for_num); //иначе целое
 
     move_num_to_struct(num, str_for_num);
     return 0;
@@ -406,20 +402,20 @@ int mult_arr(int *a, int len_a, int *b, int len_b, int *res)
             if (res[i + j] != 0 || remember != 0)
                 len = i + j + 1; 
                 //len указывает длину числа (позицию последней правой ненулевой цифры)
-            remember = t / 10;
+            remember = t / 10; //запоминаем перенос
         }
 
         if (remember != 0) 
         {
             res[i + j] = remember;
             len = i + j + 1;
-        }
+        } //обновление длины числа после последнего умножения
     }
 
     return len;
 }
 
-void mul_mant_strings(char *a, char *b, char *out)
+void mul_mant_strings(char *a, char *b, char *out) //перемножение мантисс и переворот числа
 {
     int num1[MAX_MANTISSA_LEN-1], num2[MAX_INT_LEN], res_num[MAX_MANTISSA_LEN+MAX_INT_LEN+1] = {0};
 
@@ -434,29 +430,34 @@ void mul_mant_strings(char *a, char *b, char *out)
     out[idx] = '\0';
 }
 
+//функция для округления
 void round_mantissa(char *mantissa, int *exponent) {
     int len = strlen(mantissa);
     if (len <= 30) 
     {
         return;
-    }
+    } //округлять не надо
 
     char rounded[31];
     strncpy(rounded, mantissa, 30);
-    rounded[30] = '\0';
+    rounded[30] = '\0'; 
 
+    //проверка последней цифры
     if (mantissa[30] >= '5')
     {
         int i = 29;
         while (i >= 0 && rounded[i] == '9') 
-        {
+        { //все 9ки, идущие после числа большего 5, заменяем на 0 
             rounded[i] = '0';
             i--;
         }
-        if (i >= 0) 
+        //когда вышли из цикла (либо кончились девятки, либо дошли до конца числа)
+        if (i >= 0)  //случай 1: кончились девятки
         {
             rounded[i]++;
-        } else 
+        } else //случай 2: дошли до конца числа, значит все число было из девяток 
+        //в таком случае нужно старший символ заменить на 2, а остальные - 0, и учесть порядок
+        //пример: 36 девяток будут округлены до 1 и порядка 37
         {
             rounded[0] = '1';
             for (int j = 1; j < 30; j++) 
@@ -467,8 +468,10 @@ void round_mantissa(char *mantissa, int *exponent) {
         }
     }
     strcpy(mantissa, rounded);
-}
+} 
 
+
+// обработчик для функций умножения и занесения строки в структуру
 int multiply_long(extended_float *a, extended_float *b, extended_float *res) {
     char mantissa_res[70] = {0};
     mul_mant_strings(a->mantissa, b->mantissa, mantissa_res);
@@ -523,6 +526,7 @@ int main() {
         printf("Input error (int num).\n");
         return 1;
     }
+
 
     //printf("Debug: num1_mantissa: %s, num1_exponent: %c%d\n", num1.mantissa, num1.exponent_sign, num1.exponent);
     //printf("Debug: num2_mantissa: %s, num2_exponent: %c%d\n", num2.mantissa, num2.exponent_sign, num2.exponent);
