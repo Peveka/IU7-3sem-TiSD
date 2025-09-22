@@ -2,31 +2,7 @@
 #include <string.h>
 #include "io.h"
 #include "struct.h"
-
-// determines if a year is a leap year
-int is_leap(int year) {
-    return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
-}
-
-int get_day_since_new_year(int day, int month, int year) {
-    int daysInMonth[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-    int dayCount = 0;
-
-    // if the year is a leap year, February has 29 days
-    if (is_leap(year)) {
-        daysInMonth[2] = 29; 
-    }
-
-    for (int i = 1; i < month; i++) 
-    {
-        dayCount += daysInMonth[i];
-    }
-
-    dayCount += day;
-    return dayCount;
-}
-
-
+#include "date.h"
 int get_single_subscriber_from_stdin(subscriber_t *sub)
 {
     printf("Enter surname: ");
@@ -46,8 +22,10 @@ int get_single_subscriber_from_stdin(subscriber_t *sub)
         return 0;
 
     printf("Enter status (1 - friend, 2 - colleague): ");
-    if (scanf("%d", &sub->status) != 1)
+    int temp_status;
+    if (scanf("%d", &temp_status) != 1)
         return 0;
+    sub->status = (type_status_t)temp_status;
 
     if (sub->status == FRIEND)
     {
@@ -58,6 +36,10 @@ int get_single_subscriber_from_stdin(subscriber_t *sub)
         {
             return 0;
         }
+	sub->subscriber.friend.birth_date.date_since_new_year =
+        get_day_since_new_year(sub->subscriber.friend.birth_date.date,
+                              sub->subscriber.friend.birth_date.month,
+                              sub->subscriber.friend.birth_date.year);
     }
     else if (sub->status == COLLEGUE)
     {
@@ -111,8 +93,10 @@ int get_based_info(subscriber_t *sub, FILE* file)
 
 int get_status_info(subscriber_t *sub, FILE* file)
 {
-    if (fscanf(file, "%d", &sub->status) != 1)
+    int temp_status;
+    if (fscanf(file, "%d", &temp_status) != 1)
         return 0;
+    sub->status = (type_status_t)temp_status;
     
     switch (sub->status){
         case FRIEND:
@@ -122,6 +106,12 @@ int get_status_info(subscriber_t *sub, FILE* file)
                                        &sub->subscriber.friend.birth_date.year) != 3) {
                 return 0;
             }
+
+	    sub->subscriber.friend.birth_date.date_since_new_year = 
+            get_day_since_new_year(sub->subscriber.friend.birth_date.date,
+                                  sub->subscriber.friend.birth_date.month,
+                                  sub->subscriber.friend.birth_date.year);
+
             break;
         }
         case COLLEGUE:

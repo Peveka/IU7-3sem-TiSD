@@ -10,7 +10,13 @@ typedef enum
     STDIN_INPUT = 2,
     FILE_OUTPUT = 3, 
     STDIN_OUTPUT = 4,
-    EXIT = 9
+    SEARCH_DATA = 5,
+    SORT_TABLE_BUBBLE = 6,
+    SORT_TABLE_QSORT = 7,
+    SORT_KEYS_BUBBLE = 8,
+    SORT_KEYS_QSORT = 9,
+    COMPARE_SORTS = 10,
+    EXIT = 11
 } mode_t;
 
 int menu_handler(subscriber_t *subscribers);

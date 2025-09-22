@@ -50,4 +50,10 @@ typedef struct
     subs_status_t subscriber;
 } subscriber_t;
 
+typedef struct {
+    int index;          // index in main table
+    char key[50];       // row value
+} key_table_t;
+
+
 #endif
