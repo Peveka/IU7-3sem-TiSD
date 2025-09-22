@@ -20,7 +20,7 @@ typedef struct
 typedef enum 
 {
     FRIEND=1,
-    COLLEGUE=2
+    COLLEAGUE=2
 } type_status_t;
 
 typedef struct 
@@ -32,11 +32,11 @@ typedef struct
 {
     char job[JOB_LEN+1];
     char org[ORG_LEN+1];
-} collegue_t;
+} colleague_t;
 
 typedef union 
 {
-    collegue_t collegue;
+    colleague_t colleague;
     friend_t friend;
 } subs_status_t;
 
@@ -50,10 +50,10 @@ typedef struct
     subs_status_t subscriber;
 } subscriber_t;
 
-typedef struct {
-    int index;          // index in main table
-    char key[50];       // row value
+typedef struct 
+{
+    int index;
+    char surname[SURNAME_LEN+1];
 } key_table_t;
-
 
 #endif

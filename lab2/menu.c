@@ -19,9 +19,9 @@ int menu_handler(subscriber_t *subscribers)
     
     while (mode != EXIT && rc)
     {
-        printf("\n═══════════════════════════════════════════════════\n");
+        printf("\n=================================================\n");
         printf("                 MAIN MENU\n");
-        printf("═══════════════════════════════════════════════════\n");
+        printf("\n=================================================\n");
         printf("1. Input from file\n");
         printf("2. Input from keyboard\n");
         printf("3. Output to file\n");
@@ -33,7 +33,7 @@ int menu_handler(subscriber_t *subscribers)
         printf("9. Sort via keys (qsort)\n");
         printf("10. Compare sort performance\n");
         printf("11. Exit\n");
-        printf("═══════════════════════════════════════════════════\n");
+        printf("=================================================\n");
         printf("Select mode: ");
         
         if (scanf("%d", &mode) != 1) {

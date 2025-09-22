@@ -3,6 +3,7 @@
 #include "io.h"
 #include "struct.h"
 #include "date.h"
+
 int get_single_subscriber_from_stdin(subscriber_t *sub)
 {
     printf("Enter surname: ");
@@ -41,13 +42,13 @@ int get_single_subscriber_from_stdin(subscriber_t *sub)
                               sub->subscriber.friend.birth_date.month,
                               sub->subscriber.friend.birth_date.year);
     }
-    else if (sub->status == COLLEGUE)
+    else if (sub->status == COLLEAGUE)
     {
         printf("Enter job title: ");
-        if (scanf("%25s", sub->subscriber.collegue.job) != 1) 
+        if (scanf("%25s", sub->subscriber.colleague.job) != 1) 
             return 0;
         printf("Enter organization: ");
-        if (scanf("%25s", sub->subscriber.collegue.org) != 1)
+        if (scanf("%25s", sub->subscriber.colleague.org) != 1)
             return 0;
     }
     else
@@ -114,10 +115,10 @@ int get_status_info(subscriber_t *sub, FILE* file)
 
             break;
         }
-        case COLLEGUE:
+        case COLLEAGUE:
         {
-            if (fscanf(file, "%25s %25s", sub->subscriber.collegue.job,
-                                        sub->subscriber.collegue.org) != 2) {
+            if (fscanf(file, "%25s %25s", sub->subscriber.colleague.job,
+                                        sub->subscriber.colleague.org) != 2) {
                 return 0;
             }
             break;
@@ -187,10 +188,10 @@ int write_data_to_file(subscriber_t *data, int count, const char *filename)
                                        data[i].subscriber.friend.birth_date.month,
                                        data[i].subscriber.friend.birth_date.year);
         }
-        else if (data[i].status == COLLEGUE)
+        else if (data[i].status == COLLEAGUE)
         {
-            fprintf(file, "%s %s\n", data[i].subscriber.collegue.job,
-                                     data[i].subscriber.collegue.org);
+            fprintf(file, "%s %s\n", data[i].subscriber.colleague.job,
+                                     data[i].subscriber.colleague.org);
         }
     }
     if (file != stdout)
