@@ -16,6 +16,7 @@ typedef enum
     SORT_KEYS_BUBBLE = 8,
     SORT_KEYS_QSORT = 9,
     COMPARE_SORTS = 10,
+    PRINT_KEYS_TABLE = 12,
     EXIT = 11
 } mode_t;
 

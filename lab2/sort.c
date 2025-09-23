@@ -72,9 +72,6 @@ void print_via_keys(subscriber_t *table, key_table_t *keys, int len) {
         printf("%-7d %-16s %-16s %-12s %-10s\n", 
                idx, table[idx].surname, table[idx].name, table[idx].phone, status);
     }
-    if (len > 20) {
-        printf("... and %d more records\n", len - 20);
-    }
 }
 
 // ===== CORRECTED PERFORMANCE MEASUREMENT =====
