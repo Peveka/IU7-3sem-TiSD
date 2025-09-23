@@ -16,7 +16,8 @@ int menu_handler(subscriber_t *subscribers)
     int mode = NO_MODE;
     int day = 0, month = 0, year = 0;
     int days_since_new_year = 0;
-    
+    key_table_t keys[MAX_FILE_LEN];
+    int keys_table_exist = 0;
     while (mode != EXIT && rc)
     {
         printf("\n=================================================\n");
@@ -33,6 +34,7 @@ int menu_handler(subscriber_t *subscribers)
         printf("9. Sort via keys (qsort)\n");
         printf("10. Compare sort performance\n");
         printf("11. Exit\n");
+	printf("12. Print keys table\n");
         printf("=================================================\n");
         printf("Select mode: ");
         
@@ -127,8 +129,11 @@ int menu_handler(subscriber_t *subscribers)
                     printf("Table is empty!\n");
                     break;
                 }
-                key_table_t keys[MAX_FILE_LEN];
-                create_key_table(subscribers, keys, len);
+		if (!keys_table_exist)
+		{
+		    keys_table_exist = 1;
+                    create_key_table(subscribers, keys, len);
+		}
                 bubble_sort(keys, len, sizeof(key_table_t), compare_keys);
                 print_via_keys(subscribers, keys, len);
                 break;
@@ -140,8 +145,11 @@ int menu_handler(subscriber_t *subscribers)
                     printf("Table is empty!\n");
                     break;
                 }
-                key_table_t keys[MAX_FILE_LEN];
-                create_key_table(subscribers, keys, len);
+		if (!keys_table_exist)
+                {
+                    keys_table_exist = 1;
+                    create_key_table(subscribers, keys, len);
+                }
                 qsort(keys, len, sizeof(key_table_t), compare_keys);
                 print_via_keys(subscribers, keys, len);
                 break;
@@ -157,6 +165,17 @@ int menu_handler(subscriber_t *subscribers)
             {
                 printf("Exiting program.\n");
                 break;
+            }
+	    
+	    case PRINT_KEYS_TABLE:
+	    {
+		if (!keys_table_exist)
+                {
+                    keys_table_exist = 1;
+                    create_key_table(subscribers, keys, len);
+                }
+		print_keys_table(keys, len);
+		break;
             }
 
             default:

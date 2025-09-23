@@ -9,5 +9,6 @@ int get_based_info(subscriber_t *sub, FILE* file);
 int get_status_info(subscriber_t *sub, FILE* file);
 int get_data_from_file(subscriber_t *data, const char *filename, int *len);
 int write_data_to_file(subscriber_t *data, int count, const char *filename);
+void print_keys_table(key_table_t *table, int len);
 
 #endif

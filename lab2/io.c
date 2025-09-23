@@ -26,8 +26,15 @@ int get_single_subscriber_from_stdin(subscriber_t *sub)
     int temp_status;
     if (scanf("%d", &temp_status) != 1)
         return 0;
-    sub->status = (type_status_t)temp_status;
 
+    while (temp_status != 1 && temp_status != 2)
+    {
+        printf("Invalid status, try again: 1 - friend, 2 - colleague: ");
+	scanf("%d", &temp_status);
+    }
+
+    sub->status = (type_status_t)temp_status;
+    
     if (sub->status == FRIEND)
     {
         printf("Enter date of birth (day month year): ");
@@ -63,7 +70,6 @@ int get_single_subscriber_from_stdin(subscriber_t *sub)
 int get_data_from_stdin(subscriber_t *data, int *len)
 {
     char choice = 'y';
-    *len = 0;
 
     while (*len < MAX_FILE_LEN && (choice == 'y' || choice == 'Y'))
     {
@@ -133,6 +139,15 @@ int get_status_info(subscriber_t *sub, FILE* file)
     return 1;
 }
 
+void print_keys_table(key_table_t *table, int len)
+{
+    printf("INDEX | SURNAME\n");
+    for (int i = 0; i < len; ++i)
+    {
+        printf("%d %s\n", table[i].index, table[i].surname);
+    }
+}
+
 int get_data_from_file(subscriber_t *data, const char *filename, int *len)
 {
     FILE* file = fopen(filename, "r");
@@ -141,7 +156,6 @@ int get_data_from_file(subscriber_t *data, const char *filename, int *len)
         printf("Error while opening file\n");
         return 0;
     }
-    *len = 0;
     
     while (*len < MAX_FILE_LEN && get_based_info(data + *len, file) && get_status_info(data + *len, file))
     {

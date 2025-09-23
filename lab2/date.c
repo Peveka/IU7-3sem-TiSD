@@ -1,18 +1,9 @@
 #include <stdio.h>
 #include "struct.h"
 
-int is_leap(int year) {
-    return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
-}
-
 int get_day_since_new_year(int day, int month, int year) {
     int daysInMonth[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     int dayCount = 0;
-
-    // if the year is a leap year, February has 29 days
-    if (is_leap(year)) {
-        daysInMonth[2] = 29;
-    }
 
     for (int i = 1; i < month; i++)
     {
