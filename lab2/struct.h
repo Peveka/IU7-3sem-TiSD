@@ -7,7 +7,7 @@
 #define ADDRESS_LEN 25
 #define JOB_LEN 25
 #define ORG_LEN 25
-#define MAX_FILE_LEN 1000
+#define MAX_FILE_LEN 10000
 
 typedef struct
 {
