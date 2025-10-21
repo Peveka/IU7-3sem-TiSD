@@ -216,13 +216,13 @@ void print_dense_matrix(const dense_matrix_t *matrix)
 
     printf("\nМатрица %dx%d:\n", matrix->rows, matrix->cols);
 
-    if (matrix->rows > 10 || matrix->cols > 10)
+    if (matrix->rows > 30 || matrix->cols > 30)
     {
         printf("(Матрица слишком большая для полного отображения)\n");
-        printf("Первые 5x5 элементов:\n");
+        printf("Первые 30x30 элементов:\n");
 
-        int show_rows = (matrix->rows < 5) ? matrix->rows : 5;
-        int show_cols = (matrix->cols < 5) ? matrix->cols : 5;
+        int show_rows = (matrix->rows < 30) ? matrix->rows : 30;
+        int show_cols = (matrix->cols < 30) ? matrix->cols : 30;
 
         for (int i = 0; i < show_rows; i++)
         {

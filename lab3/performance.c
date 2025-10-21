@@ -190,10 +190,10 @@ void compare_performance()
         char filename_a[100], filename_b[100];
 
         printf("Введите имя файла для матрицы A: ");
-        scanf("%99s", filename_a);
+        int res = scanf("%99s", filename_a);
 
         printf("Введите имя файла для матрицы B: ");
-        scanf("%99s", filename_b);
+        res = scanf("%99s", filename_b);
 
         clear_input_buffer();
 

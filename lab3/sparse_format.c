@@ -1,5 +1,8 @@
 #include "sparse_formats.h"
 #include "menu.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 error_t dense_to_csr(const dense_matrix_t *dense, csr_matrix_t **csr)
 {
@@ -103,7 +106,7 @@ void print_csr_matrix(const csr_matrix_t *matrix)
         printf("%d ", matrix->IA[i]);
     printf("\n");
 
-    if (matrix->rows <= 10 && matrix->cols <= 10)
+    if (matrix->rows <= 30 && matrix->cols <= 30)
     {
         printf("В виде матрицы:\n");
         for (int i = 0; i < matrix->rows; i++)
@@ -149,7 +152,7 @@ void print_csc_matrix(const csc_matrix_t *matrix)
         printf("%d ", matrix->JA[i]);
     printf("\n");
 
-    if (matrix->rows <= 10 && matrix->cols <= 10)
+    if (matrix->rows <= 30 && matrix->cols <= 30)
     {
         printf("В виде матрицы:\n");
         double **dense_data = calloc(matrix->rows, sizeof(double *));
