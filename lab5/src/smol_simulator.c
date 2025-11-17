@@ -9,11 +9,11 @@ double g_t1_max = 6.0;
 double g_t2_min = 0.0;
 double g_t2_max = 1.0; 
 
-// Структура, объединяющая все переменные состояния и статистики
+// Структура из всех переменных состояния и статистики
 typedef struct 
 {
-    // 1. Переменные состояния СМО
-    double current_time;          // Текущее время моделирования
+    //Переменные состояния модели
+    double current_time;          // Текущее время
     void *queue_ptr;             // Указатель на очередь (list_t* или array_queue_t*)
     int oa_is_busy;              // Флаг, занят ли ОА (1 - да, 0 - нет)
     double time_arrival;          // Время прихода следующей заявки
@@ -21,7 +21,7 @@ typedef struct
     request_t req_serviced;      // Заявка, которая сейчас обслуживается
     int queue_type;              // Тип очереди (1 - список, 2 - массив)
 
-    // 2. Статистические счетчики
+    //Статистические счетчики
     int entered_count;           // Всего вошло в систему
     int served_count;            // Всего вышло из системы (цель: MAX_SERVED_TOTAL)
     int served_in_oa_count;      // Количество срабатываний ОА
@@ -139,7 +139,6 @@ static void handle_service_finish(smol_t *s)
     s->time_service_finish = DBL_MAX; // Установка в бесконечность
 }
 
-// Функция для смены параметров
 void change_parameters()
 {
     printf("\n--- Смена Параметров Моделирования ---\n");
