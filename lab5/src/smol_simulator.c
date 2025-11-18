@@ -1,5 +1,6 @@
 #include <math.h>
 #include <float.h>
+#include <sys/time.h>
 #include "smol_simulator.h"
 #include "queue_list.h"
 #include "queue_array.h"
@@ -8,6 +9,13 @@ double g_t1_min = 0.0;
 double g_t1_max = 6.0; 
 double g_t2_min = 0.0;
 double g_t2_max = 1.0; 
+
+// Функция для получения текущего времени в миллисекундах
+static long long get_time_ms() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (long long)tv.tv_sec * 1000 + tv.tv_usec / 1000;
+}
 
 // Структура из всех переменных состояния и статистики
 typedef struct 
@@ -47,21 +55,21 @@ static int get_queue_len(smol_t *s)
 }
 
 // Включить элемент в очередь
-static int do_enqueue(smol_t *s, request_t req) 
+static int do_enqueue(smol_t *s, request_t req, int verbose) 
 {
     if (s->queue_type == 1) 
-        return enqueue((queue_t*)s->queue_ptr, req);
+        return enqueue((queue_t*)s->queue_ptr, req, verbose);
     else 
-        return enqueue_array((array_queue_t*)s->queue_ptr, req);
+        return enqueue_array((array_queue_t*)s->queue_ptr, req, verbose);
 }
 
 // Исключить элемент из очереди
-static int do_dequeue(smol_t *s, request_t *req) 
+static int do_dequeue(smol_t *s, request_t *req, int verbose) 
 {
     if (s->queue_type == 1) 
-        return dequeue((queue_t*)s->queue_ptr, req);
+        return dequeue((queue_t*)s->queue_ptr, req, verbose);
     else 
-        return dequeue_array((array_queue_t*)s->queue_ptr, req);
+        return dequeue_array((array_queue_t*)s->queue_ptr, req, verbose);
 }
 
 // Обновление статистики по длине очереди
@@ -76,7 +84,7 @@ static void update_queue_stats(smol_t *s, double time)
 }
 
 // Обработка события: Приход новой заявки
-static void handle_arrival(smol_t *s)
+static void handle_arrival(smol_t *s, int verbose)
 {
     // 1. Создание новой заявки
     request_t new_req = {
@@ -86,9 +94,11 @@ static void handle_arrival(smol_t *s)
     };
 
     // 2. Добавление в очередь
-    if (do_enqueue(s, new_req) != 0)
+    if (do_enqueue(s, new_req, verbose) != 0)
     {
-        printf("Критическая ошибка: Очередь переполнена. Завершение симуляции.\n");
+        if (verbose) {
+            printf("Критическая ошибка: Очередь переполнена. Завершение симуляции.\n");
+        }
         s->served_count = MAX_SERVED_TOTAL;
         return;
     }
@@ -98,7 +108,7 @@ static void handle_arrival(smol_t *s)
 }
 
 // Обработка события: Окончание обслуживания
-static void handle_service_finish(smol_t *s)
+static void handle_service_finish(smol_t *s, int verbose)
 {
     s->served_in_oa_count++;
 
@@ -108,9 +118,11 @@ static void handle_service_finish(smol_t *s)
     if (s->req_serviced.cycles > 0) 
     {
         // 2a. Рециркуляция: Добавление обратно в хвост очереди
-        if (do_enqueue(s, s->req_serviced) != 0)
+        if (do_enqueue(s, s->req_serviced, verbose) != 0)
         {
-            printf("Критическая ошибка: Очередь переполнена при рециркуляции. Завершение симуляции.\n");
+            if (verbose) {
+                printf("Критическая ошибка: Очередь переполнена при рециркуляции. Завершение симуляции.\n");
+            }
             s->served_count = MAX_SERVED_TOTAL; // Принудительный выход из цикла
             return;
         }
@@ -121,15 +133,11 @@ static void handle_service_finish(smol_t *s)
         s->served_count++;
         
         // Промежуточный вывод статистики (после каждых 100 вышедших)
-        if (s->served_count % 100 == 0)
+        if (verbose && s->served_count % 100 == 0)
         {
             printf("\n--- Промежуточный вывод (%d вышедших) ---\n", s->served_count);
             printf("Текущая длина очереди: %d\n", get_queue_len(s));
             printf("Средняя длина очереди: %.2f\n", s->total_queue_len / s->current_time);
-            
-            if (s->queue_type == 1) print_free_list();
-            else print_queue_array(s->queue_ptr);
-
             printf("---------------------------------------\n");
         }
     }
@@ -154,10 +162,16 @@ void change_parameters()
     printf("Новые параметры: T1 [0.0..%.2lf], T2 [0.0..%.2lf]\n", g_t1_max, g_t2_max);
 }
 
-void simulate_smol(int type) 
+void simulate_smol(int type, int verbose, int measure_time, int measure_memory, int address_analysis) 
 {
     queue_t q_list;
     array_queue_t q_array;
+    long long start_time_ms, end_time_ms;
+    double cpu_time_used_ms;
+    
+    if (measure_time) {
+        start_time_ms = get_time_ms();
+    }
     
     // Инициализация структуры состояния СМО
     smol_t s = {
@@ -183,15 +197,20 @@ void simulate_smol(int type)
     {
         create_queue(&q_list);
         s.queue_ptr = &q_list;
-        printf("\n--- Начинаем моделирование с ОЧЕРЕДЬЮ НА СПИСКЕ ---\n");
+        if (verbose) {
+            printf("\n--- Начинаем моделирование с ОЧЕРЕДЬЮ НА СПИСКЕ ---\n");
+        }
     } 
     else // Массив
     {
         create_queue_array(&q_array);
         s.queue_ptr = &q_array;
-        printf("\n--- Начинаем моделирование с ОЧЕРЕДЬЮ НА МАССИВЕ (кольцевая) ---\n");
+        if (verbose) {
+            printf("\n--- Начинаем моделирование с ОЧЕРЕДЬЮ НА МАССИВЕ (кольцевая) ---\n");
+        }
     }
 
+    // Основной цикл симуляции
     while (s.served_count < MAX_SERVED_TOTAL)
     {
         // 1. Определение ближайшего события
@@ -206,16 +225,16 @@ void simulate_smol(int type)
 
         // 3. Обработка событий
         if (s.current_time == s.time_arrival) 
-            handle_arrival(&s);
+            handle_arrival(&s, verbose && !address_analysis);
         
         if (s.current_time == s.time_service_finish) 
-            handle_service_finish(&s);
+            handle_service_finish(&s, verbose && !address_analysis);
 
         // 4. Проверка и Запуск Обслуживания (если ОА свободен И очередь не пуста)
         if (!s.oa_is_busy && get_queue_len(&s) > 0)
         {
             // Извлечение заявки из головы
-            if (do_dequeue(&s, &s.req_serviced) == 0)
+            if (do_dequeue(&s, &s.req_serviced, verbose && !address_analysis) == 0)
             {
                 s.oa_is_busy = 1;
                 // Планирование окончания обслуживания
@@ -234,23 +253,71 @@ void simulate_smol(int type)
         }
     }
     
-    printf("\n======================================================\n");
-    printf("           КОНЕЧНЫЕ РЕЗУЛЬТАТЫ МОДЕЛИРОВАНИЯ          \n");
-    printf("======================================================\n");
-    printf("Использованная структура: %s\n", (type == 1) ? "Список" : "Массив (кольцевой)");
-    printf("Общее время моделирования: %.4lf е.в.\n", s.current_time);
-    printf("------------------------------------------------------\n");
-    printf("Количество вошедших в систему заявок: %d\n", s.entered_count);
-    printf("Количество вышедших из системы заявок: %d (Цель: %d)\n", s.served_count, MAX_SERVED_TOTAL);
-    printf("Количество срабатываний ОА: %d\n", s.served_in_oa_count);
-    printf("Время простоя аппарата: %.4lf е.в.\n", s.idle_time);
-    printf("------------------------------------------------------\n");
-    printf("Средняя длина очереди: %.4f\n", s.total_queue_len / s.current_time);
-    printf("Максимальная длина очереди: %d\n", s.max_queue_len);
-    printf("------------------------------------------------------\n");
+    if (measure_time) {
+        end_time_ms = get_time_ms();
+        cpu_time_used_ms = (double)(end_time_ms - start_time_ms);
+    }
+    
+    // Вывод результатов в зависимости от режима
+    if (verbose) {
+        printf("\n======================================================\n");
+        printf("           КОНЕЧНЫЕ РЕЗУЛЬТАТЫ МОДЕЛИРОВАНИЯ          \n");
+        printf("======================================================\n");
+        printf("Использованная структура: %s\n", (type == 1) ? "Список" : "Массив (кольцевой)");
+        printf("Общее время моделирования: %.4lf е.в.\n", s.current_time);
+        printf("------------------------------------------------------\n");
+        printf("Количество вошедших в систему заявок: %d\n", s.entered_count);
+        printf("Количество вышедших из системы заявок: %d (Цель: %d)\n", s.served_count, MAX_SERVED_TOTAL);
+        printf("Количество срабатываний ОА: %d\n", s.served_in_oa_count);
+        printf("Время простоя аппарата: %.4lf е.в.\n", s.idle_time);
+        printf("------------------------------------------------------\n");
+        printf("Средняя длина очереди: %.4f\n", s.total_queue_len / s.current_time);
+        printf("Максимальная длина очереди: %d\n", s.max_queue_len);
+        printf("------------------------------------------------------\n");
 
-    if (type == 1) {
-        printf("\n--- Анализ Памяти (Список) ---\n");
+        if (type == 1) {
+            printf("\n--- Анализ Памяти (Список) ---\n");
+            print_free_list();
+        }
+    }
+    
+    if (measure_time) {
+        printf("\n--- РЕЗУЛЬТАТЫ ЗАМЕРА ВРЕМЕНИ ---\n");
+        printf("Время выполнения программы: %.3f мс\n", cpu_time_used_ms);
+        printf("Структура данных: %s\n", (type == 1) ? "Список" : "Массив");
+        printf("Обработано заявок: %d\n", s.served_count);
+        printf("Количество операций с очередью: %d\n", s.served_in_oa_count + s.entered_count);
+        if ((s.served_in_oa_count + s.entered_count) > 0) {
+            printf("Время на одну операцию: %.6f мс\n", cpu_time_used_ms / (s.served_in_oa_count + s.entered_count));
+        }
+    }
+    
+    if (measure_memory) {
+        printf("\n--- РЕЗУЛЬТАТЫ ЗАМЕРА ПАМЯТИ ---\n");
+        if (type == 1) {
+            size_t memory_used = get_queue_memory((queue_t*)s.queue_ptr);
+            printf("Использовано памяти для списка: %zu байт\n", memory_used);
+            printf("Количество выделенных узлов: %d\n", ((queue_t*)s.queue_ptr)->count);
+            printf("Размер одного узла: %zu байт\n", sizeof(node_t));
+            printf("Общая теоретическая память: %zu байт\n", ((queue_t*)s.queue_ptr)->count * sizeof(node_t));
+            printf("Пиковая память: %zu байт\n", s.max_queue_len * sizeof(node_t));
+        } else {
+            size_t memory_used = get_array_queue_memory((array_queue_t*)s.queue_ptr);
+            printf("Использовано памяти для массива: %zu байт\n", memory_used);
+            printf("Текущее количество элементов: %d\n", ((array_queue_t*)s.queue_ptr)->count);
+            printf("Максимальный размер массива: %d элементов\n", MAX_QUEUE_SIZE);
+            printf("Размер структуры массива: %zu байт\n", sizeof(array_queue_t));
+            printf("Размер одного элемента: %zu байт\n", sizeof(request_t));
+            printf("Общий размер данных: %zu байт\n", sizeof(array_queue_t) + (MAX_QUEUE_SIZE * sizeof(request_t)));
+        }
+    }
+    
+    if (address_analysis && type == 1) {
+        printf("\n--- АНАЛИЗ ВЫДЕЛЕННЫХ УЧАСТКОВ ПАМЯТИ ---\n");
+        printf("Всего выделено адресов: %d\n", alloc_list_count);
+        printf("Всего освобождено адресов: %d\n", free_list_count);
+        print_alloc_list();
         print_free_list();
+        clear_alloc_list();
     }
 }

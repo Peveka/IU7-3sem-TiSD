@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 extern double g_t1_min; 
 extern double g_t1_max; 
@@ -13,6 +14,6 @@ extern double g_t2_max;
 #define MAX_SERVED_TOTAL 1000 
 
 void change_parameters();
-void simulate_smol(int type);
+void simulate_smol(int type, int verbose, int measure_time, int measure_memory, int address_analysis);
 
 #endif
