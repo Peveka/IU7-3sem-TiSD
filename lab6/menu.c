@@ -21,9 +21,25 @@ static void display_menu(void)
     printf("10. Compare efficiency\n");
     printf("11. Compare different tree configurations\n");
     printf("12. Clear tree\n");
+    printf("13. In-order traversal\n");
+    printf("14. Benchmark sort/search\n");
+    printf("15. Benchmark different trees\n");
     printf("0. Exit\n");
     printf("========================================\n");
     printf("Enter your choice: ");
+}
+
+static void inorder_menu(tree_node *root)
+{
+    if (root == NULL)
+    {
+        printf("Tree is empty\n");
+        return;
+    }
+
+    printf("In-order traversal (sorted): ");
+    inorder_traversal(root);
+    printf("\n");
 }
 
 static void add_element_menu(tree_node **root)
@@ -267,13 +283,37 @@ void main_menu(void)
         case 11:
             compare_different_trees();
             break;
-
         case 12:
             free_tree(root);
             root = NULL;
             printf("Tree cleared\n");
             break;
+        case 13:
+            inorder_menu(root);
+            break;
+        case 14:
+            if (root == NULL)
+            {
+                printf("Tree is empty. Build tree first.\n");
+            }
+            else
+            {
+                char input[MAX_INPUT_SIZE];
+                printf("Enter string to benchmark: ");
+                int c;
+                while ((c = getchar()) != '\n' && c != EOF)
+                    ;
+                if (fgets(input, sizeof(input), stdin) != NULL)
+                {
+                    input[strcspn(input, "\n")] = '\0';
+                    benchmark_sort_and_search(input);
+                }
+            }
+            break;
 
+        case 15:
+            benchmark_different_configs();
+            break;
         default:
             printf("Invalid choice. Please try again.\n");
             break;

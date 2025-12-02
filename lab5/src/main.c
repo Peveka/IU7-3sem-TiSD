@@ -1,62 +1,55 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include "smol_simulator.h" 
-#include "ui_utils.h"       
+#include "../inc/simulation_core.h"
+#include "../inc/array_queue.h"
+#include "../inc/linked_queue.h"
+#include "../inc/performance_analyzer.h"
+#include "../inc/user_interface.h"
 
-int main() 
+void run_array_based_simulation(const simulation_config_t *config);
+void run_list_based_simulation(const simulation_config_t *config, memory_tracker_t *tracker);
+
+int main(void)
 {
-    srand(time(NULL)); 
+    simulation_config_t simulation_config;
+    initialize_simulation_config(&simulation_config);
 
-    int choice;
-    
-    do {
-        print_menu();
-        choice = scan_choice();
+    memory_tracker_t memory_tracker;
+    initialize_memory_tracker(&memory_tracker);
 
-        switch (choice) {
-            case 1:
-                // Симуляция на списке с полным выводом
-                printf("\n=== РЕЖИМ 1: СИМУЛЯЦИЯ НА СПИСКЕ ===\n");
-                simulate_smol(1, 1, 0, 0, 0);
-                break;
-            case 2:
-                // Симуляция на массиве с полным выводом
-                printf("\n=== РЕЖИМ 2: СИМУЛЯЦИЯ НА МАССИВЕ ===\n");
-                simulate_smol(2, 1, 0, 0, 0);
-                break;
-            case 3:
-                // Замер времени работы
-                printf("\n=== РЕЖИМ 3: ЗАМЕР ВРЕМЕНИ РАБОТЫ ===\n");
-                printf("Тестирование на списке...\n");
-                simulate_smol(1, 0, 1, 0, 0);
-                printf("\nТестирование на массиве...\n");
-                simulate_smol(2, 0, 1, 0, 0);
-                break;
-            case 4:
-                // Замер используемой памяти
-                printf("\n=== РЕЖИМ 4: ЗАМЕР ИСПОЛЬЗУЕМОЙ ПАМЯТИ ===\n");
-                printf("Тестирование на списке...\n");
-                simulate_smol(1, 0, 0, 1, 0);
-                printf("\nТестирование на массиве...\n");
-                simulate_smol(2, 0, 0, 1, 0);
-                break;
-            case 5:
-                // Анализ выделенных участков памяти (только для списка)
-                printf("\n=== РЕЖИМ 5: АНАЛИЗ ВЫДЕЛЕННЫХ УЧАСТКОВ ПАМЯТИ ===\n");
-                simulate_smol(1, 0, 0, 0, 1);
-                break;
-            case 6:
-                change_parameters();
-                break;
-            case 0:
-                printf("Завершение программы.\n");
-                break;
-            default:
-                printf("Неверный выбор!\n");
-                break;
+    int user_choice = -1;
+
+    while (user_choice != 0)
+    {
+        display_main_menu(&simulation_config);
+        user_choice = get_user_choice(0, 7);
+
+        switch (user_choice)
+        {
+        case 1:
+            run_array_based_simulation(&simulation_config);
+            break;
+        case 2:
+            run_list_based_simulation(&simulation_config, &memory_tracker);
+            break;
+        case 3:
+            display_memory_operations(&memory_tracker);
+            break;
+        case 4:
+            analyze_time_performance();
+            break;
+        case 5:
+            analyze_memory_usage();
+            break;
+        case 6:
+            modify_arrival_times(&simulation_config);
+            break;
+        case 7:
+            modify_processing_times(&simulation_config);
+            break;
+        case 0:
+            printf("Программа завершена.\n");
+            break;
         }
-    } while (choice != 0);
+    }
 
-    return 0;
+    return OPERATION_SUCCESS;
 }

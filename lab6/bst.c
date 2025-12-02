@@ -70,6 +70,16 @@ tree_node* find_maximum(tree_node* root)
     return root;
 }
 
+void inorder_traversal(tree_node *root)
+{
+    if (root != NULL)
+    {
+        inorder_traversal(root->left);
+        printf("%c ", root->data);
+        inorder_traversal(root->right);
+    }
+}
+
 tree_node *delete_node(tree_node *root, char data)
 {
     if (root == NULL)

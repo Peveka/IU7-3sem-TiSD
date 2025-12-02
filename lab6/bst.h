@@ -49,5 +49,7 @@ void visualize_tree_graphviz(tree_node *root, const char *filename);
 
 // Функции производительности
 void compare_efficiency(const char *input_string);
+void benchmark_sort_and_search(const char *input_string);
+void benchmark_different_configs(void);
 
 #endif // BST_H
