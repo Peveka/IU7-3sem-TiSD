@@ -6,8 +6,8 @@ void display_main_menu(const simulation_config_t *config)
     printf("\n");
     printf("=== СИСТЕМА АНАЛИЗА ОЧЕРЕДЕЙ (Вариант 7) ===\n");
     printf("Текущие настройки:\n");
-    printf("  Время между заявками: %.1f - %.1f\n", config->min_arrival_time, config->max_arrival_time);
-    printf("  Время обработки: %.1f - %.1f\n", config->min_processing_time, config->max_processing_time);
+    printf("  Время между заявками (T1): %.1f - %.1f\n", config->min_arrival_time, config->max_arrival_time);
+    printf("  Время обработки (T2): %.1f - %.1f\n", config->min_processing_time, config->max_processing_time);
     printf("  Количество заявок: %d\n", config->total_requests);
     printf("  Циклов обработки: %d\n", config->processing_cycles);
     printf("\n");
@@ -16,9 +16,10 @@ void display_main_menu(const simulation_config_t *config)
     printf("3 - Просмотр операций памяти\n");
     printf("4 - Тестирование скорости\n");
     printf("5 - Тестирование памяти\n");
-    printf("6 - Настройка времени заявок\n");
-    printf("7 - Настройка времени обработки\n");
+    printf("6 - Настройка времени заявок (T1)\n");
+    printf("7 - Настройка времени обработки (T2)\n");
     printf("8 - Сравнительный анализ\n");
+    printf("9 - Сравнение производительности (память + время)\n");  // Новый пункт
     printf("0 - Выход\n");
     printf("-------------------------------------------\n");
 }
@@ -49,7 +50,7 @@ int get_user_choice(int min_option, int max_option)
 
 void modify_arrival_times(simulation_config_t *config)
 {
-    printf("\n--- Настройка времени между заявками ---\n");
+    printf("\n--- Настройка времени между заявками (T1) ---\n");
 
     while (1)
     {
@@ -73,7 +74,7 @@ void modify_arrival_times(simulation_config_t *config)
         }
         else
         {
-            printf("Установлено: от %.1f до %.1f\n", config->min_arrival_time, config->max_arrival_time);
+            printf("Установлено T1: от %.1f до %.1f\n", config->min_arrival_time, config->max_arrival_time);
             break;
         }
     }
@@ -81,7 +82,7 @@ void modify_arrival_times(simulation_config_t *config)
 
 void modify_processing_times(simulation_config_t *config)
 {
-    printf("\n--- Настройка времени обработки ---\n");
+    printf("\n--- Настройка времени обработки (T2) ---\n");
 
     while (1)
     {
@@ -105,7 +106,7 @@ void modify_processing_times(simulation_config_t *config)
         }
         else
         {
-            printf("Установлено: от %.1f до %.1f\n", config->min_processing_time, config->max_processing_time);
+            printf("Установлено T2: от %.1f до %.1f\n", config->min_processing_time, config->max_processing_time);
             break;
         }
     }

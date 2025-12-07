@@ -8,10 +8,10 @@
 void run_array_based_simulation(const simulation_config_t *config);
 void run_list_based_simulation(const simulation_config_t *config, memory_tracker_t *tracker);
 void run_comparative_analysis(void);
+void run_performance_comparison_test(void);
 
 int main(void)
 {
-    // Инициализация генератора случайных чисел
     srand(time(NULL));
 
     simulation_config_t simulation_config;
@@ -25,7 +25,7 @@ int main(void)
     while (user_choice != 0)
     {
         display_main_menu(&simulation_config);
-        user_choice = get_user_choice(0, 8); // Увеличиваем до 8
+        user_choice = get_user_choice(0, 9);
 
         switch (user_choice)
         {
@@ -53,6 +53,9 @@ int main(void)
         case 8:
             run_comparative_analysis();
             break;
+        case 9:  // Новый пункт меню
+            run_performance_comparison_test();
+            break;
         case 0:
             printf("Программа завершена.\n");
             break;
@@ -69,5 +72,51 @@ void run_comparative_analysis(void)
     printf("1. Сначала запустите симуляцию на массиве (пункт 1)\n");
     printf("2. Затем запустите симуляцию на списке (пункт 2)\n");
     printf("После этого будет доступно автоматическое сравнение.\n");
+    printf("═══════════════════════════════════════════════════════\n");
+}
+
+// Новая функция для сравнения производительности
+void run_performance_comparison_test(void)
+{
+    printf("\n════════════════ СРАВНЕНИЕ ПРОИЗВОДИТЕЛЬНОСТИ ════════════════\n");
+    printf("Выполняется комплексное тестирование производительности...\n");
+    printf("Тестирование включает:\n");
+    printf("1. Использование памяти при разных размерах очереди\n");
+    printf("2. Время операций добавления/удаления\n");
+    printf("══════════════════════════════════════════════════════════════\n");
+    
+    analyze_memory_usage();
+    analyze_time_performance();
+    
+    printf("\n════════════════ РЕЗЮМЕ СРАВНЕНИЯ ════════════════\n");
+    
+    simulation_config_t config;
+    initialize_simulation_config(&config);
+    
+    printf("Текущие настройки времени:\n");
+    printf("• Время между заявками (T1): %.1f - %.1f\n", config.min_arrival_time, config.max_arrival_time);
+    printf("• Время обработки (T2): %.1f - %.1f\n", config.min_processing_time, config.max_processing_time);
+    printf("\n");
+    
+    printf("АНАЛИТИЧЕСКИЕ ВЫВОДЫ:\n");
+    printf("1. Кольцевой буфер (массив):\n");
+    printf("   • Фиксированное использование памяти: %zu байт\n", get_circular_buffer_memory_footprint());
+    printf("   • Быстрые операции добавления/удаления O(1)\n");
+    printf("   • Ограничен максимальным размером: %d элементов\n", MAX_QUEUE_CAPACITY);
+    printf("   • Минимальная фрагментация памяти\n");
+    printf("\n");
+    
+    printf("2. Связный список:\n");
+    printf("   • Динамическое использование памяти\n");
+    printf("   • Память: ~%zu байт на элемент\n", sizeof(queue_node_t));
+    printf("   • Гибкость - нет ограничений по размеру\n");
+    printf("   • Возможная фрагментация памяти\n");
+    printf("\n");
+    
+    printf("РЕКОМЕНДАЦИИ:\n");
+    printf("• Для предсказуемых нагрузок (до %d заявок) - используйте массив\n", MAX_QUEUE_CAPACITY);
+    printf("• Для непредсказуемых/больших нагрузок - используйте список\n");
+    printf("• Для систем с ограниченной памятью - массив более эффективен\n");
+    printf("• Для систем с частыми вставками/удалениями - список может быть быстрее\n");
     printf("═══════════════════════════════════════════════════════\n");
 }

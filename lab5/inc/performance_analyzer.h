@@ -15,4 +15,6 @@ void display_time_comparison_row(size_t count, int64_t array_enqueue_time, int64
                                  int64_t list_enqueue_time, int64_t list_dequeue_time);
 void analyze_time_performance(void);
 
+void run_comprehensive_performance_comparison(void);
+
 #endif
