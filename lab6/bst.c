@@ -158,7 +158,7 @@ tree_node *build_tree_from_string(const char *input)
 
     for (size_t i = 0; input[i] != '\0'; i++)
     {
-        if (isalnum((unsigned char)input[i]))
+        if (((unsigned char)input[i]) != ' ')
         {
             root = insert_node(root, input[i]);
         }

@@ -51,5 +51,5 @@ void visualize_tree_graphviz(tree_node *root, const char *filename);
 void compare_efficiency(const char *input_string);
 void benchmark_sort_and_search(const char *input_string);
 void benchmark_different_configs(void);
-
+void benchmark_tree_operations_direct(tree_node *tree, int expected_size, const char *type);
 #endif // BST_H

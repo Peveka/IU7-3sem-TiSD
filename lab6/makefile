@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99
+CFLAGS = -Wall -Wextra -std=c99 -g0
 TARGET = bst_program
 OBJS = main.o menu.o bst.o tree_visualizer.o performance.o
 

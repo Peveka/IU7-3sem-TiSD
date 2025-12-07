@@ -30,6 +30,20 @@ typedef struct
     double average_waiting_time;
 } simulation_metrics_t;
 
+typedef struct
+{
+    double simulation_time;         // Виртуальное время моделирования
+    double real_execution_time;     // Реальное время выполнения (сек)
+    size_t peak_memory_usage;       // Пиковое использование памяти (байт)
+    size_t total_memory_operations; // Всего операций с памятью
+    int max_queue_size;             // Максимальная длина очереди
+    long long total_enqueue_ops;    // Всего операций добавления
+    long long total_dequeue_ops;    // Всего операций удаления
+} performance_metrics_t;
+
+void print_performance_comparison(const performance_metrics_t *array_metrics,
+                                  const performance_metrics_t *list_metrics);
+
 void initialize_simulation_config(simulation_config_t *config);
 void reset_simulation_metrics(simulation_metrics_t *metrics);
 

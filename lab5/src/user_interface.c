@@ -1,14 +1,15 @@
 #include "../inc/user_interface.h"
+#include <stdio.h>
 
 void display_main_menu(const simulation_config_t *config)
 {
     printf("\n");
-    printf("=== СИСТЕМА АНАЛИЗА ОЧЕРЕДЕЙ ===\n");
+    printf("=== СИСТЕМА АНАЛИЗА ОЧЕРЕДЕЙ (Вариант 7) ===\n");
     printf("Текущие настройки:\n");
     printf("  Время между заявками: %.1f - %.1f\n", config->min_arrival_time, config->max_arrival_time);
     printf("  Время обработки: %.1f - %.1f\n", config->min_processing_time, config->max_processing_time);
     printf("  Количество заявок: %d\n", config->total_requests);
-    printf("  Шаг вывода: %d\n", config->output_frequency);
+    printf("  Циклов обработки: %d\n", config->processing_cycles);
     printf("\n");
     printf("1 - Запуск моделирования (массив)\n");
     printf("2 - Запуск моделирования (список)\n");
@@ -17,8 +18,9 @@ void display_main_menu(const simulation_config_t *config)
     printf("5 - Тестирование памяти\n");
     printf("6 - Настройка времени заявок\n");
     printf("7 - Настройка времени обработки\n");
+    printf("8 - Сравнительный анализ\n");
     printf("0 - Выход\n");
-    printf("-----------------------------------\n");
+    printf("-------------------------------------------\n");
 }
 
 int get_user_choice(int min_option, int max_option)
