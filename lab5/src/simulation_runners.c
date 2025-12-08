@@ -4,7 +4,6 @@
 #include <sys/time.h>
 #include <time.h>
 
-// Добавляем глобальные переменные для хранения метрик
 static performance_metrics_t array_perf_metrics;
 static performance_metrics_t list_perf_metrics;
 
@@ -24,7 +23,6 @@ void print_performance_comparison(const performance_metrics_t *array_metrics,
 {
     printf("\n════════════════ СРАВНИТЕЛЬНЫЙ АНАЛИЗ ЭФФЕКТИВНОСТИ ════════════════\n");
 
-    // Время выполнения
     printf("╔══════════════════════════════════════════════════════════════╗\n");
     printf("║                      ВРЕМЯ ВЫПОЛНЕНИЯ                       ║\n");
     printf("╠══════════════════════════════════╦═══════════════════════════╣\n");
@@ -36,7 +34,6 @@ void print_performance_comparison(const performance_metrics_t *array_metrics,
            array_metrics->real_execution_time, list_metrics->real_execution_time);
     printf("╚══════════════════════════════════╩════════════╧═════════════╝\n\n");
 
-    // Использование памяти
     printf("╔══════════════════════════════════════════════════════════════╗\n");
     printf("║                 ИСПОЛЬЗОВАНИЕ ПАМЯТИ                        ║\n");
     printf("╠══════════════════════════════════╦════════════╪═════════════╣\n");
@@ -50,7 +47,6 @@ void print_performance_comparison(const performance_metrics_t *array_metrics,
            array_metrics->total_memory_operations, list_metrics->total_memory_operations);
     printf("╚══════════════════════════════════╩════════════╧═════════════╝\n\n");
 
-    // Операции с очередью
     printf("╔══════════════════════════════════════════════════════════════╗\n");
     printf("║               ОПЕРАЦИИ С ОЧЕРЕДЬЮ                           ║\n");
     printf("╠══════════════════════════════════╦════════════╪═════════════╣\n");
@@ -63,10 +59,8 @@ void print_performance_comparison(const performance_metrics_t *array_metrics,
     printf("╚══════════════════════════════════╩════════════╧═════════════╝\n");
     printf("══════════════════════════════════════════════════════════════════\n");
 
-    // Анализ эффективности
     printf("\nАНАЛИЗ ЭФФЕКТИВНОСТИ:\n");
 
-    // Время
     if (array_metrics->real_execution_time < list_metrics->real_execution_time)
     {
         double speedup = (list_metrics->real_execution_time / array_metrics->real_execution_time) * 100;
@@ -78,7 +72,6 @@ void print_performance_comparison(const performance_metrics_t *array_metrics,
         printf("• Список быстрее массива на %.1f%%\n", speedup - 100);
     }
 
-    // Память
     if (array_metrics->peak_memory_usage < list_metrics->peak_memory_usage)
     {
         double memory_saving = ((double)list_metrics->peak_memory_usage /
@@ -96,7 +89,6 @@ void print_performance_comparison(const performance_metrics_t *array_metrics,
         printf("• Список использует на %.1f%% меньше памяти\n", memory_saving);
     }
 
-    // Фрагментация памяти
     printf("• Фрагментация памяти:\n");
     printf("  - Массив: минимальная (статическое выделение)\n");
     printf("  - Список: возможна (динамическое выделение/освобождение)\n");
@@ -106,7 +98,6 @@ void run_array_based_simulation(const simulation_config_t *config)
 {
     printf("\n════════════════ ЗАПУСК СИМУЛЯЦИИ (КОЛЬЦЕВОЙ БУФЕР) ════════════════\n");
 
-    // Начало замера времени
     struct timeval start_time, end_time;
     gettimeofday(&start_time, NULL);
     clock_t cpu_start = clock();
@@ -130,14 +121,11 @@ void run_array_based_simulation(const simulation_config_t *config)
 
     while (metrics.completed_requests < config->total_requests && operation_result == OPERATION_SUCCESS)
     {
-        // Обновляем максимальный размер очереди
         if (queue.size > array_perf_metrics.max_queue_size)
         {
             array_perf_metrics.max_queue_size = queue.size;
         }
 
-        // Рассчитываем использование памяти для массива
-        // Для статического массива: размер массива + служебные данные
         size_t current_memory = sizeof(circular_buffer_queue_t);
         if (current_memory > array_perf_metrics.peak_memory_usage)
         {
@@ -223,7 +211,6 @@ void run_array_based_simulation(const simulation_config_t *config)
         }
     }
 
-    // Конец замера времени
     gettimeofday(&end_time, NULL);
     clock_t cpu_end = clock();
 
@@ -234,7 +221,6 @@ void run_array_based_simulation(const simulation_config_t *config)
     array_perf_metrics.simulation_time = metrics.total_simulation_time;
     array_perf_metrics.real_execution_time = real_time_elapsed;
 
-    // Увеличиваем пиковое использование памяти для учета служебных данных
     array_perf_metrics.peak_memory_usage += sizeof(simulation_metrics_t) + sizeof(circular_buffer_queue_t);
 
     if (operation_result == QUEUE_OVERFLOW)
@@ -262,7 +248,6 @@ void run_list_based_simulation(const simulation_config_t *config, memory_tracker
 {
     printf("\n════════════════ ЗАПУСК СИМУЛЯЦИИ (СВЯЗНЫЙ СПИСОК) ════════════════\n");
 
-    // Начало замера времени
     struct timeval start_time, end_time;
     gettimeofday(&start_time, NULL);
     clock_t cpu_start = clock();
@@ -287,18 +272,13 @@ void run_list_based_simulation(const simulation_config_t *config, memory_tracker
 
     while (metrics.completed_requests < config->total_requests && operation_result == OPERATION_SUCCESS)
     {
-        // Обновляем максимальный размер очереди
         if (queue.size > list_perf_metrics.max_queue_size)
         {
             list_perf_metrics.max_queue_size = queue.size;
         }
 
-        // Рассчитываем использование памяти для списка
-        // Каждый узел: данные (int) + указатель (queue_node_t*)
         size_t node_size = sizeof(queue_node_t);
         size_t current_memory = queue.size * node_size + sizeof(dynamic_linked_queue_t);
-
-        // Учитываем фрагментацию (грубая оценка: добавляем 10% на накладные расходы malloc)
         current_memory = (size_t)(current_memory * 1.1);
 
         if (current_memory > list_perf_metrics.peak_memory_usage)
@@ -306,7 +286,6 @@ void run_list_based_simulation(const simulation_config_t *config, memory_tracker
             list_perf_metrics.peak_memory_usage = current_memory;
         }
 
-        // Увеличиваем счетчик операций с памятью
         list_perf_metrics.total_memory_operations++;
 
         if (is_processor_busy == 0)
@@ -403,8 +382,6 @@ void run_list_based_simulation(const simulation_config_t *config, memory_tracker
             }
         }
     }
-
-    // Конец замера времени
     gettimeofday(&end_time, NULL);
     clock_t cpu_end = clock();
 
@@ -414,8 +391,6 @@ void run_list_based_simulation(const simulation_config_t *config, memory_tracker
 
     list_perf_metrics.simulation_time = metrics.total_simulation_time;
     list_perf_metrics.real_execution_time = real_time_elapsed;
-
-    // Добавляем память под служебные структуры
     list_perf_metrics.peak_memory_usage += sizeof(simulation_metrics_t) + sizeof(dynamic_linked_queue_t);
 
     if (operation_result == MEMORY_ALLOCATION_FAILED)
@@ -435,8 +410,6 @@ void run_list_based_simulation(const simulation_config_t *config, memory_tracker
         printf("Операций с памятью: %zu (malloc/free)\n", list_perf_metrics.total_memory_operations);
         printf("Операций добавления: %lld\n", list_perf_metrics.total_enqueue_ops);
         printf("Операций удаления: %lld\n", list_perf_metrics.total_dequeue_ops);
-
-        // Анализ фрагментации
         if (list_perf_metrics.total_memory_operations > 1000)
         {
             printf("Фрагментация памяти: возможна (много динамических операций)\n");
@@ -447,12 +420,11 @@ void run_list_based_simulation(const simulation_config_t *config, memory_tracker
         }
         printf("═══════════════════════════════════════════════════════\n");
 
-        // Если метрики для массива уже собраны, показываем сравнение
         if (array_perf_metrics.real_execution_time > 0)
         {
             printf("\nНажмите Enter для просмотра сравнительного анализа...");
-            getchar(); // Ожидание нажатия Enter
-            getchar(); // Для учета символа новой строки
+            getchar();
+            getchar();
             print_performance_comparison(&array_perf_metrics, &list_perf_metrics);
         }
     }

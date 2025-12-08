@@ -53,7 +53,7 @@ int main(void)
         case 8:
             run_comparative_analysis();
             break;
-        case 9:  // Новый пункт меню
+        case 9: 
             run_performance_comparison_test();
             break;
         case 0:
